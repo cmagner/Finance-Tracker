@@ -4,6 +4,7 @@ BANK,Bank Charge
 BANK,Bank Error                       
 529.ACCOUNT,Becca's 529                      
 BECCA,Credit Card:Discover - Becca     
+BECCA,Becca - Cash   
 BUSINESS.INCOME,Business Income                 
 BUSINESS.EXPENSE,Biz Misc.                        
 BUSINESS.EXPENSE,Business:Postage & Shipping      
@@ -34,6 +35,7 @@ MISCELLANEOUS,Education:Online Learning
 MISCELLANEOUS,Medical:Gym
 MISCELLANEOUS,Misc                             
 MISCELLANEOUS,Personal Care                   
+RECREATION,Entertainment                 
 RECREATION,Leisure:Books                    
 RECREATION,Leisure:Games                   
 RECREATION,Leisure:Movie Rental             
@@ -48,6 +50,7 @@ TAXES,Tax:Local Income
 TAXES,Tax:Local Services Tax           
 TAXES,Tax:State                        
 VACATION,Recreation:Vacation              
+VACATION,Vacation              
 UNCATEGORIZED,Credit Card:Mastercard - Sears   
 UNCATEGORIZED,Credit Card:Visa - Clearview FCU 
 UNCATEGORIZED,Uncategorized                    

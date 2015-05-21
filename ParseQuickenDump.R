@@ -70,6 +70,14 @@ ParseQuickenDump <- function(filename) {
         filter( Amount != 0.00 ) %>%
         mutate( Amount = abs(Amount) )
     
+    # Make transfers to the HELOC account, expenses with category 
+    # "Home Equity Line of Credit"
+    transHELOC <- trans$Account == "HELOC - Fulton Bank"
+    trans$Type[transHELOC] <- "EXPENSE"
+    trans$Account[transHELOC] <- 
+        substr( trans$Category[transHELOC], 2, nchar(trans$Category[transHELOC])-1 )
+    trans$Category[transHELOC] <- "Home Equity Line of Credit"
+    
     # Show any HSA contributions as a transfer rather than expense
     transHSA <- trans$Category == "Medical:HSA Savings"
     trans$Type[transHSA] <- "TRANSFER"
