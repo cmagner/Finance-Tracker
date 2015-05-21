@@ -1,0 +1,61 @@
+Category,SubCategory
+AUTO ,Auto:Fuel
+BANK,Bank Charge                     
+BANK,Bank Error                       
+529.ACCOUNT,Becca's 529                      
+BECCA,Credit Card:Discover - Becca     
+BUSINESS.INCOME,Business Income                 
+BUSINESS.EXPENSE,Biz Misc.                        
+BUSINESS.EXPENSE,Business:Postage & Shipping      
+BUSINESS.EXPENSE,Business:Supplies                
+CHARITY,Other Charity                    
+CASH,Cash                             
+CELL.PHONES,Utilities:Cell Phones           
+CLOTHING,Clothing                        
+COLLEGE,Education:Housing                
+COLLEGE,Education:Tuition & Housing  
+COLLEGE,Other Education                 
+DOGS,Dog:Food                         
+DOGS,Dog:Vet                          
+DOGS,Other Dog                        
+GROCERIES,Household:groceries              
+GROCERIES,Other Household                  
+HOME,House Related:Home Improvement   
+HOME,House Related:Lawn&Garden       
+HOME, House Related:Pest Control       
+INSURANCE,Auto:Insurance                   
+INSURANCE,Medical:Insurance                
+LOANS,Auto:Loan                        
+LOANS,Home Equity Line of Credit 
+LOANS,Mortgage Payment                
+MEDICAL,Medical:Doctor                   
+MEDICAL,Medical:Medicine                 
+MISCELLANEOUS,Education:Online Learning       
+MISCELLANEOUS,Medical:Gym
+MISCELLANEOUS,Misc                             
+MISCELLANEOUS,Personal Care                   
+RECREATION,Leisure:Books                    
+RECREATION,Leisure:Games                   
+RECREATION,Leisure:Movie Rental             
+RECREATION,Leisure:Music                    
+RECREATION,Other Leisure                    
+RECREATION,Other Recreation                 
+RESTAURANTS.TAKEOUT,Dining Out                      
+RESTAURANTS.TAKEOUT,Other Dining                     
+TRUEPOSITION,Salary                           
+TAXES,Tax:Fed                          
+TAXES,Tax:Local Income                
+TAXES,Tax:Local Services Tax           
+TAXES,Tax:State                        
+VACATION,Recreation:Vacation              
+UNCATEGORIZED,Credit Card:Mastercard - Sears   
+UNCATEGORIZED,Credit Card:Visa - Clearview FCU 
+UNCATEGORIZED,Uncategorized                    
+UTILITIES,Utilities:Electricity            
+UTILITIES,Utilities:Garbage & Recycling    
+UTILITIES,Utilities:Gas                    
+UTILITIES,"Utilities:Internet, Phone, TV"
+UTILITIES,Utilities:Sewer                  
+UTILITIES,Utilities:Tivo                   
+UTILITIES,Utilities:Water
+,
