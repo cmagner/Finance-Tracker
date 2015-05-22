@@ -1,4 +1,4 @@
-RunTracker <- function() {
+RunTracker <- function(filename) {
 
     library(dplyr)
     library(tidyr)
@@ -11,7 +11,7 @@ RunTracker <- function() {
     source('~/Bills, Finances, Taxes & Legal/FinanceTracker/AddMajorCategories.R')
     source('~/Bills, Finances, Taxes & Legal/FinanceTracker/plotCashBurnDown.R')
 
-    t1 <- ParseQuickenDump("QuickenDump_05162015.TXT")
+    t1 <- ParseQuickenDump(filename)
     t2 <- AddMajorCategories(t1,"Categories.csv")
     cash <-plotCashBurnDown(t2)
 }
