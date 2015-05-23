@@ -4,6 +4,8 @@ RunTracker <- function(filename) {
     library(tidyr)
     library(lubridate)
     library(ggplot2)
+    library(scales)
+    library(grid)
     
     setwd("~/Bills, Finances, Taxes & Legal/FinanceTracker")
 

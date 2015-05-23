@@ -1,13 +1,4 @@
 plotCashBurnDown <- function( trans ) {
-
-    dollar_str <- function(num, cents=FALSE) {
-        val <- if (cents) round(num,2) else round(num,0)
-        negs <- (val < 0)
-        str <- gsub(" ", "", 
-            paste("$", format( abs(val), big.mark=",", big.interval=3 ), sep=""))
-        str[negs] <- paste("-", str[negs], sep="")        
-    }
-    
     
     # ------------------------------------------------------------------------
     # VARIOUS MAGIC NUMBERS
@@ -46,21 +37,23 @@ plotCashBurnDown <- function( trans ) {
     estBurnRateWk <- sum(c(1628, 473, 360, 113))
     
     # ------------------------------------------------------------------------
-    # Adjust the week numbers so that week starts on Sunday
+    # Several date/time related calculations:
+    #   * Adjust the week numbers so that week starts on Sunday
+    #   * Find the earlies and latest weeks in the data
+    #   * Compute current week number as both an integer and fractional value
+    #   * Compute a fractional week value corresponding to the current date
     trans <- mutate(trans, Week = week(trans$Date - 4*24*60*60) %% 52)
     startWeek <- min(trans$Week)
     latestWeek <- max(trans$Week)
     currentWeek <- week(now() - 4*24*60*60) %% 52
     currentWeekFrac <- as.numeric(now() - mdy("1/1/2015") - 4) / 7
     todayFrcWk <- as.numeric(now() - mdy("1/1/2015")) / 7
-  
-#     latestDate <- max(trans$Date)  
-#     currentDate <- now()
     
     # ------------------------------------------------------------------------
     # Create a table containing the weekly income and expense totals for every
-    # week to date
-    allWks <- data.frame( Week=min(trans$Week) : max(trans$Week[trans$Type != "TRANSFER"]) )
+    # week 
+    allWks <- data.frame( 
+        Week=min(trans$Week) : max(trans$Week[trans$Type != "TRANSFER"]) )
     exp <- 
         trans %>% 
         filter(Type=="EXPENSE") %>% 
@@ -81,7 +74,7 @@ plotCashBurnDown <- function( trans ) {
     cashLeft <- tbl_df(data.frame(Week = startWeek:week(mdy("12/31/2015"))))
     
     # ------------------------------------------------------------------------
-    # Create the actual cash remaining as a function of week
+    # Add to this table the actual cash remaining as a function of week
     cashLeft$Actual <- NA
     cashLeft$Actual[1] <- startCashInBank
     for (n in 1:nrow(tblIncExp)) {
@@ -90,7 +83,7 @@ plotCashBurnDown <- function( trans ) {
     }
     
     # ------------------------------------------------------------------------
-    # Create the predicated cash remaining as a function of week
+    # Add to this table, the predicated cash remaining as a function of week
     cashLeft$Predicted[1] <- startCashInBank
     rowIdx <- nrow(tblIncExp) + 1
     for (n in 1:rowIdx) {
@@ -98,7 +91,8 @@ plotCashBurnDown <- function( trans ) {
     }
     rowIdx <- rowIdx + 1
     cashLeft$Predicted[rowIdx] <- 
-        cashLeft$Predicted[rowIdx] - sum(estExpenses$Amount[is.na(estExpenses$DateIncurred)])
+        cashLeft$Predicted[rowIdx] - 
+        sum(estExpenses$Amount[is.na(estExpenses$DateIncurred)])
     for (n in rowIdx:(nrow(cashLeft)-1)) {
         cashLeft$Predicted[n+1] <- cashLeft$Predicted[n] - estBurnRateWk
     }
@@ -113,66 +107,112 @@ plotCashBurnDown <- function( trans ) {
     second(zeroCashDate) <- ((zeroCashWeek*7) + 4)*24*60*60
 
     # ------------------------------------------------------------------------
-    cashLeft <- mutate(cashLeft,partialWeek=Week >= currentWeek)
-    # Plot the estimated, actual and predicated cash remaining
-    p <- ggplot(cashLeft, aes(x=Week)) +
-        geom_area(fill="white", colour="honeydew3", alpha=0.5, aes(x=Week,y=Predicted), show_guide=TRUE) +
-        geom_bar(colour="black", stat="identity", alpha=0.25, aes(y=Actual, fill=!partialWeek)) +
-        labs(
-            title=paste("Cash Burn Down - ",month(today(),label=TRUE)," ",day(today()),", ",year(today()),sep=""), 
-                        x="Week/Month", y="Remaining Cash") +
-    geom_vline(
-        xintercept = as.numeric(mdy(paste(4:11,"/1/2015")) - mdy("1/1/2015"))/7, 
-        linetype=3, colour="wheat4") +
-    annotate("text", y = -1.5e4, size=rel(8), colour="steelblue4",
-             x = as.numeric(mdy(paste(4:10,"/1/2015")) - mdy("1/1/2015"))/7 +
-                 as.numeric(mdy(paste(5:11,"/1/2015")) - mdy(paste(4:10,"/1/2015")))/14,
-             label = month(4:10,label=TRUE)) +
-    annotate("segment", x=todayFrcWk, xend=todayFrcWk, 
-             y=-5e3, yend=6e4, colour="firebrick", linetype=3, size=rel(1)) +
-    annotate("segment", x=zeroCashWeek,  xend=zeroCashWeek, 
-             y=-5e3, yend=6e4, colour="firebrick", linetype=3, size=rel(1)) +
-    annotate("text", y = -8e3, x = todayFrcWk, size=6, colour="firebrick4", face="bold", 
-             label = "today", sep="/") +
-    annotate("text", y = -8e3, x = zeroCashWeek, size=6, colour="firebrick4", face="bold",
-             label = paste( month(zeroCashDate,label=TRUE), day(zeroCashDate)) ) +
-    theme(
-        plot.title = element_text(size=rel(2.5), face="bold" ),
-        panel.grid.major.x = element_blank(), 
-        panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(linetype=3, colour="wheat4"),
-        panel.grid.minor.y = element_line(linetype=3, colour="wheat4"),
-        axis.title = element_text(size=rel(2), face="bold"), 
-        axis.text = element_text(size=rel(1.5), colour="steelblue4") ) +
-    scale_y_continuous(labels = dollar) +
-    coord_cartesian(xlim = c(10,45), ylim = c(-2e4, 6e4)) +
-    scale_x_descrete(values=c(FALSE,TRUE), labels=c("Partial","Complete")) +
-    guides(fill = guide_legend(title = "FUCK", label.position = "right")) 
-    
+    # GENERATE THE PLOT OBJECT:
+    #   The predicated and actual cash remaining vs time
 
-#     p <- ggplot(cashLeft, aes(Week)) +
-#         labs(title="Cash Burn Down", x="Week/Month", y="Remaining Cash") +
-#         geom_area(fill="honeydew", colour="honeydew3", aes(y=Predicted)) +
-#         geom_vline(
-#             xintercept = as.numeric(mdy(paste(4:11,"/1/2015")) - mdy("1/1/2015"))/7, 
-#             linetype=3, colour="wheat4") +
-#         annotate("text", y = -1.5e4, size=rel(8), colour="steelblue4",
-#                  x = as.numeric(mdy(paste(4:10,"/1/2015")) - mdy("1/1/2015"))/7 +
-#                      as.numeric(mdy(paste(5:11,"/1/2015")) - mdy(paste(4:10,"/1/2015")))/14,
-#                  label = month(4:10,label=TRUE)) +
-#         annotate("segment", x=zeroCashWeek,  xend=zeroCashWeek, y=1.75e4, yend=0, colour="firebrick") +
-#         annotate("text", y = 2e4, x = zeroCashWeek, size=6, colour="firebrick4",
-#                  label = paste( month(zeroCashDate), day(zeroCashDate), year(zeroCashDate), sep="/") ) +
-#         geom_bar(colour="black", stat="identity", alpha=0.25, aes(y=Actual), fill="green4") +
-#         theme(
-#             plot.title = element_text(size=rel(2.5), face="bold" ),
-#             panel.grid.major.x = element_blank(), 
-#             panel.grid.minor.x = element_blank(),
-#             axis.title = element_text(size=rel(2), face="bold"), 
-#             axis.text = element_text(size=rel(1.5), colour="steelblue4") ) +
-#         scale_y_continuous(labels = dollar) +
-#         coord_cartesian(xlim = c(10,45), ylim = c(-2e4, 6e4))
+    cashLeft <- mutate( cashLeft, partialWeek=(Week >= currentWeek) )
+    x_axis_weeks <- c(15,25,35,45)
+
+    # This plot will use the "cashLeft" table.  Set the x-axis to use the "Week"
+    # column of that table now.
+    p <- ggplot( cashLeft, aes(x=Week) ) +
     
+        # Add the predicted cash burn down to the plot as a solid filled display
+        # that will lie under the actual burn down display.
+        geom_area( 
+            fill="white", colour="honeydew3", alpha=0.5, 
+            aes(x=Week, y=Predicted)) +
+    
+        # Add the actual cash burn down to the plot as a bar plot of weekly
+        # values.  Weeks not yet frozen (i.e. in the past) are differenciated
+        # from the others.
+        geom_bar( 
+            colour="black", stat="identity", alpha=0.25, 
+            aes(y=Actual, fill=!partialWeek)) +
+
+        # Add vertical grid lines on month boundaries and place the name of
+        # each month between these boundaries.
+        geom_vline(
+            xintercept=as.numeric(mdy(paste(4:11,"/1/2015")) - mdy("1/1/2015"))/7, 
+            linetype=3, colour="wheat4") +
+        annotate( 
+            "text", size=rel(8), colour="steelblue4", y=-1.7e4, 
+            x = as.numeric(mdy(paste(4:10,"/1/2015")) - mdy("1/1/2015"))/7 +
+                as.numeric(mdy(paste(5:11,"/1/2015")) - mdy(paste(4:10,"/1/2015")))/14,
+            label = month(4:10,label=TRUE)) +
+    
+        # Add a line and label to the plot corresponding to the current date
+        # and corresponding acutal cash amount.
+        annotate(
+            "segment", x=todayFrcWk, xend=todayFrcWk, 
+             y=-5e3, yend=6e4, colour="firebrick", linetype=3, size=rel(1)) +
+        annotate(
+            "text", y=-8e3, x=todayFrcWk, size=6, face="bold", 
+            colour="firebrick4", label="today", sep="/") +
+        annotate(
+            "text", y=-1.2e4, x=todayFrcWk, size=6, face="bold",
+            colour="firebrick4", 
+            label=dollar( round(filter(cashLeft, Week==20)$Actual)) ) +
+    
+        # Add a line and label to the plot corresponding the predicted zero
+        # cash remaining day.
+        annotate(
+            "segment", x=zeroCashWeek,  xend=zeroCashWeek, 
+             y=-5e3, yend=6e4, colour="firebrick", linetype=3, size=rel(1)) +
+        annotate(
+            "text", y=-8e3, x=zeroCashWeek, size=6, face="bold", 
+            colour="firebrick4", 
+            label=paste( month(zeroCashDate,label=TRUE), day(zeroCashDate)) ) +
+        annotate(
+            "text", y=-1.2e4, x=zeroCashWeek, size=6, face="bold",
+            colour="firebrick4", label="$0" ) +
+        
+        # Add titles for the plot, x-axis, and y-axis.
+        labs(
+            title=paste( "Cash Burn Down - ", month(today(),label=TRUE), " ",
+                         day(today()), ", ", year(today()), sep="" ), 
+            x="Week/Month", 
+            y="Remaining Cash") +
+    
+        theme(
+            # Adjust the plot title settings
+            plot.title = element_text(size=rel(2.5), face="bold", vjust=rel(1.0) ),
+        
+            # Turn off the x gridlines (in weeks)
+            panel.grid.major.x = element_blank(), 
+            panel.grid.minor.x = element_blank(),
+        
+            # Adjust the y gridline settings
+            panel.grid.major.y = element_line(linetype=3, colour="wheat4"),
+            panel.grid.minor.y = element_line(linetype=3, colour="wheat4"),
+        
+            # Adjust the x and y axis settings
+            axis.title.y = element_text(size=rel(2), face="bold", vjust=rel(1.0)), 
+            axis.title.x = element_text(size=rel(2), face="bold", vjust=rel(-0.5)), 
+            axis.text = element_text(size=rel(1.5), colour="steelblue4"),
+            axis.ticks = element_line(size=rel(2)),
+        
+            # Turn off display of the legend
+            # todo:  This is not right, but better than nothing
+            legend.title = element_blank(),
+            legend.text = element_blank(),
+            legend.key.size = unit(0,"cm") ) +
+    
+        # Adjust the y-axis display so it's values are shown as dollar amounts.
+        # (this takes advantage of the dollar function from the scales package)
+        scale_y_continuous( labels=dollar ) +
+    
+        # Set the x-axis tick values to display as "wk-XX" where XX is the
+        # corresponding week number.
+        scale_x_continuous( 
+            breaks=x_axis_weeks, labels=paste("wk-",x_axis_weeks,sep="") ) +
+    
+        # Adjust the x and y axis limits.
+        coord_cartesian(
+            xlim=c( 10, 45 ), 
+            ylim=c( -2e4, 6e4 ) )
+
+    # Display the plot.
     print(p)
     
     # Return the cash burn down table
